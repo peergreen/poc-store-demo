@@ -2,9 +2,8 @@ package com.peergreen.store.demo;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -20,6 +19,7 @@ import com.peergreen.store.controller.IUserController;
 import com.peergreen.store.db.client.ejb.entity.Capability;
 import com.peergreen.store.db.client.ejb.entity.Category;
 import com.peergreen.store.db.client.ejb.entity.Petal;
+import com.peergreen.store.db.client.ejb.entity.Property;
 import com.peergreen.store.db.client.ejb.entity.Requirement;
 import com.peergreen.store.db.client.ejb.entity.Vendor;
 import com.peergreen.store.db.client.ejb.session.api.ISessionRequirement;
@@ -47,7 +47,9 @@ public class App {
     @Requires
     private ISessionRequirement requirementSession;
 
-
+    private Property property;
+    private Set<Property> properties;
+    
     @Validate
     public void main() throws EntityAlreadyExistsException, NoEntityFoundException {
         System.out.println("Running");
@@ -82,37 +84,45 @@ public class App {
                         "who created JOnAS, the Open Application Server used for" +
                 "critical production processes");    
 
-        File petalBinary = new File("C:\\Users\\user1\\.m2\\repository\\com\\peergreen\\" +
+        File petalBinary = new File("C:\\Users\\user2\\.m2\\repository\\com\\peergreen\\" +
                 "store\\controller\\1.0-SNAPSHOT\\controller-1.0-SNAPSHOT.jar");
 
 
-        Map<String, String> properties = new HashMap<>();
-        properties.put("bundle", "true");
+        properties = new HashSet<>();
+        property = new Property("bundle", "true");
+        properties.add(property);
         Capability capJX = petalController.createCapability("Jax-RS", "1.0", "Rest", properties);
 
-        Map<String, String> properties1 = new HashMap<>();
-        properties1.put("bundle", "false");
-        Capability capJPA = petalController.createCapability("JPA", "2.4", "db", properties1);
+        properties = new HashSet<>();
+        property = new Property("bundle", "false");
+        properties.add(property);
+        Capability capJPA = petalController.createCapability("JPA", "2.4", "db", properties);
 
-        Map<String, String> properties1Bis = new HashMap<>();
-        properties1Bis.put("bundle", "true");
-        Capability capJPA1 = petalController.createCapability("JPABundle", "2.4", "db", properties1Bis);
+        properties = new HashSet<>();
+        property = new Property("bundle", "true");
+        properties.add(property);
+        Capability capJPA1 = petalController.createCapability("JPABundle", "2.4", "db", properties);
 
-        Map<String,String> properties2 = new HashMap<>();
-        properties2.put("DB", "H2");
-        properties2.put("bundle","true");
-        Capability capHB = petalController.createCapability("Hibernate", "4.6", "provider", properties2);
+        properties = new HashSet<>();
+        property = new Property("DB", "H2");
+        properties.add(property);
+        property = new Property("bundle","true");
+        properties.add(property);
+        Capability capHB = petalController.createCapability("Hibernate", "4.6", "provider", properties);
 
-        Map<String,String> properties2Bis = new HashMap<>();
-        properties2Bis.put("DB", "H2");
-        
-        properties2Bis.put("bundle","true");
-        Capability capHB1 = petalController.createCapability("Hibernate", "1.6", "provider", properties2Bis);
+        properties = new HashSet<>();
+        property = new Property("DB", "H2");
+        properties.add(property);
+        property = new Property("bundle","true");
+        properties.add(property);
+        Capability capHB1 = petalController.createCapability("Hibernate", "1.6", "provider", properties);
 
-        Map<String,String> properties3 = new HashMap<>();
-        properties3.put("DB", "H2");
-        properties3.put("bundle","true");
-        Capability capELink = petalController.createCapability("EclipseLink", "2.6", "provider", properties3);
+        properties = new HashSet<>();
+        property = new Property("DB", "EclipseLink");
+        properties.add(property);
+        property = new Property("bundle","true");
+        properties.add(property);
+        Capability capELink = petalController.createCapability("EclipseLink", "2.6", "provider", properties);
 
 
         String filter1 = "(&(capabilityName=Jax-RS)(version=1.0)(bundle=true))";
@@ -122,13 +132,13 @@ public class App {
         Requirement requirement2 = petalController.createRequirement("test2", "test2", filter2);
 
         String filter3 = "(&(|(capabilityName=Hibernate)(capabilityName=EclipseLink))(namespace=provider)(version>2.0))";
-        Requirement requirement3 = petalController.createRequirement("test3", "test3", filter3);
+        Requirement requirement3 = petalController.createRequirement("test3", "provider", filter3);
 
         String filter4 = "(&(capabilityName=Hibernate)(version>1.0)(bundle=true))";
-        Requirement requirement4 = petalController.createRequirement("test4", "test4", filter4);
+        Requirement requirement4 = petalController.createRequirement("test4", "provider", filter4);
 
         String filter5 = "(&(|(capabilityName=Hibernate)(capabilityName=EclipseLink))(namespace=provider)(version>2.0)";
-        Requirement requirement5 = petalController.createRequirement("test5", "test5", filter5);
+        Requirement requirement5 = petalController.createRequirement("test5", "provider", filter5);
 
         String filter6 = "(&(capabilityName=Tomcat)(namespace=WebContainer))";;
         Requirement requirement6 = petalController.createRequirement("test6", "test6", filter6);
@@ -140,7 +150,7 @@ public class App {
         setReq0.add(requirement5);
 
         //Adding petal with capability Jax-RS and 2 requirement: JPA and (Hibernate or EclipseLink)
-       petalController.addPetal(vendor.getVendorName(),"RestfulApp", "1.0.0", "Test", category, setReq0, setCap0, Origin.LOCAL, petalBinary);
+        petalController.addPetal(vendor.getVendorName(),"RestfulApp", "1.0.0", "Test", category, setReq0, setCap0, Origin.LOCAL, petalBinary);
 
 
         Set<Capability> setCap = new HashSet<>();
@@ -192,14 +202,14 @@ public class App {
         Set<Requirement> setReq6 = new HashSet<>();
         //Adding petal given 2 capability : Hibernate and JPA bundle
         storeManagement.submitPetal(vendor.getVendorName(), "Test7", "1.4", "Test", category, setReq6, setCap6,petalBinary);
-        
+
 
         System.out.println(" We have " + storeManagement.collectPetalsFromLocal().size() + " petals in the local repository");
         System.out.println(" We have " + storeManagement.collectPetalsFromStaging().size() + " petals in the staging repository");
 
         Collection<Petal> petals = userController.collectPetals("Administrator");
         System.out.println("The Administrator have access to " + petals.size() + " petals");
-        
+
         System.out.println("After validate the petal in the stagging ");
         storeManagement.validatePetal(vendor.getVendorName(),"Test7", "1.4");
         storeManagement.validatePetal(vendor.getVendorName(),"Test7", "1.4");
@@ -208,10 +218,40 @@ public class App {
         String url = "https://store.peergreen.com";
         String description = "Peergreen central store";
         storeManagement.addLink(url, description);
-        
+
         System.out.println(" We have " + storeManagement.collectPetalsFromRemote().size() + " petals in the remote repository");
         System.out.println("The Administrator have access to " + petals.size() + " petals");
 
+        Requirement req = null;
+        try {
+            req = petalController.createRequirement("test", "provider", "(bundle=true)");
+        } catch (EntityAlreadyExistsException e) {
+            e.printStackTrace();
+        }
 
+        // search for capabilities meeting this requirement
+        Collection<Capability> listResolvedCapabilities = requirementSession.findCapabilities(req);
+
+        System.out.println();
+        if (listResolvedCapabilities.size() <= 0) {
+            System.out.println("Search results: no result.");
+        } else {
+            System.out.println("Search results:");
+        }
+
+        int i = 1;
+        Iterator<Capability> it = listResolvedCapabilities.iterator();
+        System.out.println();
+        System.out.println("tut");
+        while (it.hasNext()) {
+            Capability c = it.next();
+            
+            System.out.println(i + " - " + c.getCapabilityId() + " - " + c.getCapabilityName());
+            i++;
+        }
+
+        Collection<Petal> petalsList = storeManagement.collectPetalsFromLocal();
+        System.out.println();
+        System.out.println("There are "+petalsList.size()+" petal(s) in local repository");
     }
 }
